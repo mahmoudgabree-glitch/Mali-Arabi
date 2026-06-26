@@ -1563,9 +1563,200 @@
             font-family: 'Tajawal', sans-serif;
             direction: rtl;
         }
+    
+        /* Audio indicator */
+        .audio-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            z-index: 9997;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+            transition: all 0.3s;
+        }
+
+        .audio-indicator:hover {
+            transform: scale(1.1);
+        }
+
+        .audio-indicator.speaking {
+            animation: pulse 1s infinite;
+        }
+
+        .audio-indicator.muted {
+            background: #ccc;
+        }
+
+        /* Translation tooltip */
+        .translation-tooltip {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(45, 52, 54, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            z-index: 9996;
+            max-width: 90%;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .translation-tooltip.show {
+            opacity: 1;
+        }
+
+        .translation-tooltip .lang-label {
+            color: var(--accent);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        /* Audio button on cards */
+        .card-audio-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255,107,53,0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .world-card:hover .card-audio-btn,
+        .game-card:hover .card-audio-btn {
+            opacity: 1;
+        }
+
+        .card-audio-btn:hover {
+            transform: scale(1.2);
+        }
+
+        /* Enhanced lesson card */
+        .lesson-audio-panel {
+            background: linear-gradient(135deg, rgba(78,205,196,0.1), rgba(167,139,250,0.1));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(78,205,196,0.2);
+        }
+
+        .lesson-audio-panel h3 {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .audio-btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .audio-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-btn-arabic {
+            background: var(--purple);
+            color: white;
+            box-shadow: 0 4px 16px rgba(167,139,250,0.3);
+        }
+
+        .audio-btn-bosnian {
+            background: var(--secondary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(78,205,196,0.3);
+        }
+
+        .audio-btn-both {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+        }
+
+        .audio-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Word breakdown */
+        .word-breakdown {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .word-letter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            min-width: 50px;
+        }
+
+        .word-letter .ar {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        .word-letter .bs {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
     </style>
 </head>
 <body>
+
+    <!-- AUDIO INDICATOR -->
+    <div class="audio-indicator" id="audioIndicator" onclick="toggleAudio()">🔊</div>
+
+    <!-- TRANSLATION TOOLTIP -->
+    <div class="translation-tooltip" id="translationTooltip">
+        <span class="lang-label" id="tooltipLang">🇧🇦</span>
+        <span id="tooltipText"></span>
+    </div>
+
 
     <!-- SPLASH SCREEN -->
     <div id="splash">
@@ -1573,8 +1764,8 @@
         <div class="splash-title">Mali Arabi</div>
         <div class="splash-subtitle">Uči arapski jezik na zabavan način!</div>
         <div class="lang-selector">
-            <button class="lang-btn active" onclick="setLanguage('bs')">🇧🇦 Bosanski</button>
-            <button class="lang-btn" onclick="setLanguage('ar')">🇸🇦 العربية</button>
+            <button class="lang-btn active" onclick="setLanguage('bs', this)">🇧🇦 Bosanski</button>
+            <button class="lang-btn" onclick="setLanguage('ar', this)">🇸🇦 العربية</button>
         </div>
         <div class="splash-loader"><div class="splash-loader-bar"></div></div>
     </div>
@@ -1675,6 +1866,7 @@
             </div>
             <div class="worlds-grid">
                 <div class="world-card world-letters" onclick="openWorld('letters')">
+                    <button class="card-audio-btn" onclick="event.stopPropagation(); speakBosnian('Svijet slova. Ovdje možeš naučiti sva arapska slova')">🔊</button>
                     <span class="world-icon">🔤</span>
                     <div class="world-name" data-bs="Svijet slova" data-ar="عالم الحروف">Svijet slova</div>
                     <div class="world-progress">5/28 lekcija</div>
@@ -1683,6 +1875,7 @@
                     </div>
                 </div>
                 <div class="world-card world-words" onclick="openWorld('words')">
+                    <button class="card-audio-btn" onclick="event.stopPropagation(); speakBosnian('Svijet riječi. Nauči osnovne arapske riječi')">🔊</button>
                     <span class="world-icon">📚</span>
                     <div class="world-name" data-bs="Svijet riječi" data-ar="عالم الكلمات">Svijet riječi</div>
                     <div class="world-progress">2/50 lekcija</div>
@@ -2113,10 +2306,14 @@
 
         let currentLang = 'bs';
 
-        function setLanguage(lang) {
+        function setLanguage(lang, clickedBtn) {
             currentLang = lang;
+
+            // Update language buttons visual state
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (clickedBtn) {
+                clickedBtn.classList.add('active');
+            }
 
             // Update all elements with data-bs and data-ar attributes
             document.querySelectorAll('[data-bs][data-ar]').forEach(el => {
@@ -2132,6 +2329,11 @@
             // Update document direction
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = lang;
+
+            // Transition to onboarding after language selection
+            setTimeout(() => {
+                transitionFromSplash();
+            }, 300);
         }
 
         // ==================== DATA ====================
@@ -2208,14 +2410,195 @@
         let soundEnabled = true;
 
         // ==================== SPLASH ====================
-        setTimeout(() => {
+        let splashTransitioned = false;
+
+        function transitionFromSplash() {
+            if (splashTransitioned) return;
+            splashTransitioned = true;
             document.getElementById('splash').classList.add('hidden');
             setTimeout(() => {
                 document.getElementById('onboarding').classList.add('active');
             }, 800);
-        }, 2500);
+        }
+
+        // Auto transition after 2.5 seconds
+        setTimeout(transitionFromSplash, 2500);
+
+        // Allow tap to skip splash
+        document.getElementById('splash').addEventListener('click', transitionFromSplash);
+        document.getElementById('splash').addEventListener('touchend', function(e) {
+            e.preventDefault();
+            transitionFromSplash();
+        });
 
         // ==================== ONBOARDING ====================
+        
+        // ==================== ENHANCED AUDIO UI ====================
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const indicator = document.getElementById('audioIndicator');
+            if (soundEnabled) {
+                indicator.textContent = '🔊';
+                indicator.classList.remove('muted');
+                showTooltip('🇧🇦', 'Zvuk uključen');
+            } else {
+                indicator.textContent = '🔇';
+                indicator.classList.add('muted');
+                showTooltip('🇧🇦', 'Zvuk isključen');
+            }
+        }
+
+        function showTooltip(lang, text) {
+            const tooltip = document.getElementById('translationTooltip');
+            const tooltipLang = document.getElementById('tooltipLang');
+            const tooltipText = document.getElementById('tooltipText');
+
+            tooltipLang.textContent = lang;
+            tooltipText.textContent = text;
+            tooltip.classList.add('show');
+
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 3000);
+        }
+
+        // Enhanced speak functions with visual feedback
+        function speakWithTranslation(text, bosnianText) {
+            if (!soundEnabled) return;
+
+            const indicator = document.getElementById('audioIndicator');
+            indicator.classList.add('speaking');
+
+            showTooltip('🇸🇦', text + ' → ' + bosnianText);
+
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+
+                const arabicUtterance = new SpeechSynthesisUtterance(text);
+                arabicUtterance.lang = 'ar-SA';
+                arabicUtterance.rate = 0.7;
+                arabicUtterance.pitch = 1.1;
+
+                arabicUtterance.onend = () => {
+                    setTimeout(() => {
+                        const bosnianUtterance = new SpeechSynthesisUtterance(bosnianText);
+                        bosnianUtterance.lang = 'bs-BA';
+                        bosnianUtterance.rate = 0.9;
+                        bosnianUtterance.pitch = 1.0;
+                        bosnianUtterance.onend = () => {
+                            indicator.classList.remove('speaking');
+                        };
+                        speechSynthesis.speak(bosnianUtterance);
+                    }, 400);
+                };
+
+                speechSynthesis.speak(arabicUtterance);
+            }
+        }
+
+        function speakArabic(text) {
+            if (!soundEnabled) return;
+
+            const indicator = document.getElementById('audioIndicator');
+            indicator.classList.add('speaking');
+            showTooltip('🇸🇦', text);
+
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ar-SA';
+                utterance.rate = 0.7;
+                utterance.pitch = 1.1;
+                utterance.onend = () => {
+                    indicator.classList.remove('speaking');
+                };
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function speakBosnian(text) {
+            if (!soundEnabled) return;
+
+            const indicator = document.getElementById('audioIndicator');
+            indicator.classList.add('speaking');
+            showTooltip('🇧🇦', text);
+
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'bs-BA';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.onend = () => {
+                    indicator.classList.remove('speaking');
+                };
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Override existing speakText
+        window.speakText = speakArabic;
+
+        // Add hover audio to all interactive elements
+        function addHoverAudio() {
+            // World cards
+            document.querySelectorAll('.world-card:not(.locked)').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    const worldName = card.querySelector('.world-name');
+                    if (worldName) {
+                        const bsText = worldName.dataset.bs || worldName.textContent;
+                        speakBosnian(bsText);
+                    }
+                });
+            });
+
+            // Game cards
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    const gameName = card.querySelector('.game-name');
+                    const gameDesc = card.querySelector('.game-desc');
+                    if (gameName && gameDesc) {
+                        const bsText = (gameName.dataset.bs || gameName.textContent) + '. ' + (gameDesc.dataset.bs || gameDesc.textContent);
+                        speakBosnian(bsText);
+                    }
+                });
+            });
+
+            // Achievement badges
+            document.querySelectorAll('.achievement-badge:not(.locked)').forEach(badge => {
+                badge.addEventListener('mouseenter', () => {
+                    const name = badge.querySelector('.achievement-name');
+                    if (name) {
+                        const achievement = achievements.find(a => a.nameBs === name.textContent || a.nameAr === name.textContent);
+                        if (achievement) {
+                            speakBosnian(achievement.nameBs + '. ' + achievement.descBs);
+                        }
+                    }
+                });
+            });
+
+            // Navigation items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    const label = item.querySelector('.nav-label');
+                    if (label) {
+                        speakBosnian(label.dataset.bs || label.textContent);
+                    }
+                });
+            });
+        }
+
+        // Call addHoverAudio after app starts
+        const _originalStartApp = window.startApp;
+        window.startApp = function() {
+            if (_originalStartApp) _originalStartApp();
+            setTimeout(() => {
+                addHoverAudio();
+                speakBosnian('Dobrodošao u Mali Arabi. Izaberi svijet učenja ili igru. Sve elemente možeš slušati tako što ćeš preći prstom preko njih.');
+            }, 1200);
+        };
+
         function nextSlide() {
             const slides = document.querySelectorAll('.slide');
             const dots = document.querySelectorAll('.dot');
@@ -2286,19 +2669,35 @@
         // ==================== NAVIGATION ====================
         function navigateTo(screen) {
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+
+            // Hide all screens first
+            document.querySelectorAll('.game-screen, .lesson-screen, .profile-screen, .settings-screen').forEach(s => s.classList.remove('active'));
 
             if (screen === 'home') {
                 document.getElementById('app').style.display = 'block';
-                closeAllScreens();
+                document.getElementById('profileScreen').classList.remove('active');
+                document.getElementById('settingsScreen').classList.remove('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else if (screen === 'games') {
                 document.getElementById('app').style.display = 'block';
-                closeAllScreens();
-                document.querySelector('.games-scroll').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('profileScreen').classList.remove('active');
+                document.getElementById('settingsScreen').classList.remove('active');
+                setTimeout(() => {
+                    const gamesSection = document.querySelector('.games-scroll');
+                    if (gamesSection) gamesSection.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
             } else if (screen === 'profile') {
+                document.getElementById('app').style.display = 'none';
                 document.getElementById('profileScreen').classList.add('active');
+                document.getElementById('settingsScreen').classList.remove('active');
+                renderProfileAchievements();
             } else if (screen === 'settings') {
+                document.getElementById('app').style.display = 'none';
                 document.getElementById('settingsScreen').classList.add('active');
+                document.getElementById('profileScreen').classList.remove('active');
             }
         }
 
@@ -2309,6 +2708,10 @@
 
         function closeScreen(screenId) {
             document.getElementById(screenId).classList.remove('active');
+            // Return to home view
+            document.getElementById('app').style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.nav-item:first-child').classList.add('active');
         }
 
         // ==================== PROGRESS ====================
@@ -2420,6 +2823,7 @@
 
         function closeLesson() {
             document.getElementById('lessonScreen').classList.remove('active');
+            document.getElementById('app').style.display = 'block';
         }
 
         // ==================== GAMES ====================
@@ -2441,6 +2845,7 @@
 
         function closeGame() {
             document.querySelectorAll('.game-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('app').style.display = 'block';
         }
 
         // ==================== TRACING GAME ====================
@@ -2751,6 +3156,7 @@
 
         function closeReward() {
             document.getElementById('rewardScreen').classList.remove('active');
+            document.getElementById('app').style.display = 'block';
         }
 
         // ==================== CONFETTI ====================
@@ -2814,6 +3220,529 @@
                 </div>
             `).join('');
         }
-    </script>
+    
+        // ==================== AUDIO NARRATION SYSTEM ====================
+        let audioEnabled = true;
+        let currentAudio = null;
+
+        // Audio descriptions for all elements (Bosnian + Arabic)
+        const audioDescriptions = {
+            // Splash screen
+            'splashTitle': { bs: 'Mali Arabi', ar: 'عربي صغير' },
+            'splashSubtitle': { bs: 'Uči arapski jezik na zabavan način', ar: 'تعلم اللغة العربية بطريقة ممتعة' },
+
+            // Onboarding
+            'slide1Title': { bs: 'Uči i igraj', ar: 'تعلم وألعب' },
+            'slide1Desc': { bs: 'Otkrij svijet pun igara i avantura dok učiš arapski jezik na zabavan način', ar: 'اكتشف عالماً مليئاً بالألعاب والمغامرات أثناء تعلم اللغة العربية' },
+            'slide2Title': { bs: 'Osvoji nagrade', ar: 'اربح جوائز' },
+            'slide2Desc': { bs: 'Skupljaj bodove i značke i dokaži svoje vještine u arapskom jeziku', ar: 'اجمع النقاط والشارات وأثبت مهاراتك في اللغة العربية' },
+            'slide3Title': { bs: 'Otkrij kulture', ar: 'اكتشف ثقافات' },
+            'slide3Desc': { bs: 'Upoznaj arapsku kulturu kroz zanimljive priče i interaktivne igre', ar: 'تعرف على الثقافة العربية من خلال قصص وألعاب تفاعلية ممتعة' },
+
+            // Profile setup
+            'whoAreYou': { bs: 'Ko si ti? Izaberi svoj lik i ime', ar: 'من أنت؟ اختر شخصيتك واسمك' },
+            'chooseAvatar': { bs: 'Izaberi svoj lik', ar: 'اختر شخصيتك' },
+            'enterName': { bs: 'Upiši svoje ime', ar: 'اكتب اسمك' },
+            'howOld': { bs: 'Koliko imaš godina', ar: 'كم عمرك' },
+            'startAdventure': { bs: 'Kreni u avanturu', ar: 'ابدأ المغامرة' },
+
+            // Main app
+            'dailyChallenge': { bs: 'Današnji izazov. Nauči pet nova slova. Završi lekciju i osvoji sto dodatnih bodova', ar: 'تحدي اليوم. تعلم خمسة حروف جديدة. أكمل الدرس واحصل على مئة نقطة إضافية' },
+            'learningWorlds': { bs: 'Svijetovi učenja', ar: 'عوالم التعلم' },
+            'letterWorld': { bs: 'Svijet slova. Ovdje možeš naučiti sva arapska slova', ar: 'عالم الحروف. هنا يمكنك تعلم جميع الحروف العربية' },
+            'wordWorld': { bs: 'Svijet riječi. Nauči osnovne arapske riječi', ar: 'عالم الكلمات. تعلم الكلمات العربية الأساسية' },
+            'numberWorld': { bs: 'Svijet brojeva. Zaključano. Završi prethodne lekcije da otključaš', ar: 'عالم الأرقام. مقفل. أكمل الدروس السابقة لفتحه' },
+            'colorWorld': { bs: 'Svijet boja. Zaključano', ar: 'عالم الألوان. مقفل' },
+            'animalWorld': { bs: 'Svijet životinja. Zaključano', ar: 'عالم الحيوانات. مقفل' },
+            'storyWorld': { bs: 'Svijet priča. Zaključano', ar: 'عالم القصص. مقفل' },
+
+            // Games
+            'eduGames': { bs: 'Edukativne igre', ar: 'العاب تعليمية' },
+            'tracingGame': { bs: 'Praćenje slova. Crtaj arapska slova prstom po ekranu', ar: 'تتبع الحروف. ارسم الحروف العربية بإصبعك على الشاشة' },
+            'matchingGame': { bs: 'Upari karte. Pronađi odgovarajući par slova i slike', ar: 'مطابقة البطاقات. اعثر على الزوج المناسب من الحرف والصورة' },
+            'quizGame': { bs: 'Brzi kviz. Testiraj svoje znanje arapskih slova', ar: 'اختبار سريع. اختبر معرفتك بالحروف العربية' },
+            'puzzleGame': { bs: 'Riječna slagalica. Sastavi arapsku riječ od slova', ar: 'لغز الكلمات. رتب الحروف لتكوين كلمة عربية' },
+
+            // Achievements
+            'achievements': { bs: 'Tvoji uspjesi', ar: 'إنجازاتك' },
+
+            // Navigation
+            'homeNav': { bs: 'Početna stranica', ar: 'الصفحة الرئيسية' },
+            'gamesNav': { bs: 'Igre', ar: 'الألعاب' },
+            'profileNav': { bs: 'Tvoj profil', ar: 'ملفك الشخصي' },
+            'settingsNav': { bs: 'Postavke', ar: 'الإعدادات' },
+
+            // Settings
+            'soundSetting': { bs: 'Zvuk. Uključi ili isključi zvučne efekte', ar: 'الصوت. تشغيل أو إيقاف المؤثرات الصوتية' },
+            'notifSetting': { bs: 'Obavještenja. Podsjetnik za dnevne lekcije', ar: 'الإشعارات. تذكير بالدروس اليومية' },
+            'darkSetting': { bs: 'Tamni režim. Smanji svjetlost za oči', ar: 'الوضع الليلي. تقليل الإضاءة للعين' },
+            'parentSetting': { bs: 'Roditeljski režim. Kontrola vremena i sadržaja', ar: 'وضع الأهل. التحكم بالوقت والمحتوى' },
+            'resetSetting': { bs: 'Obriši napredak. Izbriši sve podatke', ar: 'مسح التقدم. حذف جميع البيانات' },
+
+            // Profile
+            'myProfile': { bs: 'Moj profil', ar: 'ملفي الشخصي' },
+            'points': { bs: 'bodova', ar: 'نقطة' },
+            'lessons': { bs: 'lekcija', ar: 'دروس' },
+            'streakDays': { bs: 'dana zaredom', ar: 'أيام متتالية' },
+            'myAchievements': { bs: 'Moji uspjesi', ar: 'إنجازاتي' },
+
+            // Rewards
+            'excellent': { bs: 'Odlično', ar: 'أحسنت' },
+            'lessonComplete': { bs: 'Uspješno si završio lekciju', ar: 'لقد أكملت الدرس بنجاح' },
+            'continue': { bs: 'Nastavi', ar: 'استمر' },
+
+            // Game actions
+            'clear': { bs: 'Obriši', ar: 'مسح' },
+            'check': { bs: 'Provjeri', ar: 'تحقق' },
+            'next': { bs: 'Dalje', ar: 'التالي' },
+            'previous': { bs: 'Prethodno', ar: 'السابق' },
+            'finish': { bs: 'Završi', ar: 'إنهاء' },
+            'speak': { bs: 'Izgovori', ar: 'استمع' },
+            'reset': { bs: 'Ponovo', ar: 'إعادة' },
+
+            // Quiz
+            'quizQuestion': { bs: 'Kako se zove ovo slovo', ar: 'ما اسم هذا الحرف' },
+            'wordPuzzle': { bs: 'Sastavi riječ', ar: 'اكمل الكلمة' }
+        };
+
+        // Letter pronunciations with Bosnian meaning
+        const letterAudio = [
+            { char: 'أ', bs: 'Alif. Prvo slovo arapske abecede. Znači lav', ar: 'ألف. أول حرف في الأبجدية العربية. يعني أسد' },
+            { char: 'ب', bs: 'Baa. Drugo slovo. Znači patka', ar: 'باء. الحرف الثاني. يعني بطة' },
+            { char: 'ت', bs: 'Taa. Treće slovo. Znači jabuka', ar: 'تاء. الحرف الثالث. يعني تفاح' },
+            { char: 'ث', bs: 'Thaa. Znači lisica', ar: 'ثاء. يعني ثعلب' },
+            { char: 'ج', bs: 'Jeem. Znači deva', ar: 'جيم. يعني جمل' },
+            { char: 'ح', bs: 'Haa. Znači konj', ar: 'حاء. يعني حصان' },
+            { char: 'خ', bs: 'Khaa. Znači ovca', ar: 'خاء. يعني خروف' },
+            { char: 'د', bs: 'Daal. Znači pijetao', ar: 'دال. يعني ديك' },
+            { char: 'ذ', bs: 'Dhaal. Znači vuk', ar: 'ذال. يعني ذئب' },
+            { char: 'ر', bs: 'Raa. Znači čovjek', ar: 'راء. يعني رجل' },
+            { char: 'ز', bs: 'Zay. Znači žirafa', ar: 'زاي. يعني زرافة' },
+            { char: 'س', bs: 'Seen. Znači riba', ar: 'سين. يعني سمكة' },
+            { char: 'ش', bs: 'Sheen. Znači sunce', ar: 'شين. يعني شمس' },
+            { char: 'ص', bs: 'Saad. Znači orao', ar: 'صاد. يعني صقر' },
+            { char: 'ض', bs: 'Daad. Znači žaba', ar: 'ضاد. يعني ضفدع' },
+            { char: 'ط', bs: 'Taa. Znači ptica', ar: 'طاء. يعني طائر' },
+            { char: 'ظ', bs: 'Dhaa. Znači kuverta', ar: 'ظاء. يعني ظرف' },
+            { char: 'ع', bs: 'Ain. Znači grožđe', ar: 'عين. يعني عنب' },
+            { char: 'غ', bs: 'Ghain. Znači srna', ar: 'غين. يعني غزال' },
+            { char: 'ف', bs: 'Faa. Znači slon', ar: 'فاء. يعني فيل' },
+            { char: 'ق', bs: 'Qaaf. Znači mačka', ar: 'قاف. يعني قطة' },
+            { char: 'ك', bs: 'Kaaf. Znači pas', ar: 'كاف. يعني كلب' },
+            { char: 'ل', bs: 'Laam. Znači limun', ar: 'لام. يعني ليمون' },
+            { char: 'م', bs: 'Meem. Znači banana', ar: 'ميم. يعني موز' },
+            { char: 'ن', bs: 'Noon. Znači pčela', ar: 'نون. يعني نحلة' },
+            { char: 'ه', bs: 'Haa. Znači ptica', ar: 'هاء. يعني هدهد' },
+            { char: 'و', bs: 'Waaw. Znači ruža', ar: 'واو. يعني ورد' },
+            { char: 'ي', bs: 'Yaa. Znači ruka', ar: 'ياء. يعني يد' }
+        ];
+
+        // Word pronunciations with Bosnian meaning
+        const wordAudio = [
+            { arabic: 'كتاب', bs: 'Kitaab. Znači knjiga', ar: 'كتاب. يعني كتاب' },
+            { arabic: 'بيت', bs: 'Bayt. Znači kuća', ar: 'بيت. يعني بيت' },
+            { arabic: 'شمس', bs: 'Shams. Znači sunce', ar: 'شمس. يعني شمس' },
+            { arabic: 'قمر', bs: 'Qamar. Znači mjesec', ar: 'قمر. يعني قمر' },
+            { arabic: 'ماء', bs: 'Maa. Znači voda', ar: 'ماء. يعني ماء' },
+            { arabic: 'طعام', bs: 'Taaam. Znači hrana', ar: 'طعام. يعني طعام' },
+            { arabic: 'صديق', bs: 'Sadeeq. Znači prijatelj', ar: 'صديق. يعني صديق' },
+            { arabic: 'عائلة', bs: 'Aaela. Znači porodica', ar: 'عائلة. يعني عائلة' },
+            { arabic: 'مدرسة', bs: 'Madrasa. Znači škola', ar: 'مدرسة. يعني مدرسة' },
+            { arabic: 'لعبة', bs: 'Luba. Znači igra', ar: 'لعبة. يعني لعبة' }
+        ];
+
+        // Achievement descriptions
+        const achievementAudio = {
+            'starter': { bs: 'Početak. Završi prvu lekciju', ar: 'البداية. أكمل أول درس' },
+            'streak3': { bs: 'Tri dana. Uči tri dana zaredom', ar: 'ثلاثة أيام. تعلم ثلاثة أيام متتالية' },
+            'reader': { bs: 'Čitač. Pročitaj deset riječi', ar: 'قارئ. اقرأ عشر كلمات' },
+            'points50': { bs: 'Pedeset bodova. Skupi pedeset bodova', ar: 'خمسون نقطة. اجمع خمسين نقطة' },
+            'champion': { bs: 'Šampion. Završi dvadeset lekcija', ar: 'بطل. أكمل عشرين درس' },
+            'artist': { bs: 'Umjetnik. Nacrtaj deset slova', ar: 'فنان. ارسم عشرة حروف' },
+            'explorer': { bs: 'Istraživač. Otključaj tri svijeta', ar: 'مستكشف. افتح ثلاثة عوالم' },
+            'master': { bs: 'Majstor. Završi pedeset lekcija', ar: 'محترف. أكمل خمسين درس' }
+        };
+
+        // Comprehensive speak function with Bosnian translation
+        function speakWithTranslation(text, bosnianText) {
+            if (!soundEnabled) return;
+
+            // Stop any current audio
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+
+            // Speak Arabic first
+            if (text && text.trim()) {
+                const arabicUtterance = new SpeechSynthesisUtterance(text);
+                arabicUtterance.lang = 'ar-SA';
+                arabicUtterance.rate = 0.7;
+                arabicUtterance.pitch = 1.1;
+
+                // After Arabic, speak Bosnian translation
+                arabicUtterance.onend = () => {
+                    if (bosnianText && bosnianText.trim()) {
+                        setTimeout(() => {
+                            const bosnianUtterance = new SpeechSynthesisUtterance(bosnianText);
+                            bosnianUtterance.lang = 'bs-BA';
+                            bosnianUtterance.rate = 0.9;
+                            bosnianUtterance.pitch = 1.0;
+                            speechSynthesis.speak(bosnianUtterance);
+                        }, 300);
+                    }
+                };
+
+                speechSynthesis.speak(arabicUtterance);
+            }
+        }
+
+        // Speak only Arabic
+        function speakArabic(text) {
+            if (!soundEnabled) return;
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ar-SA';
+                utterance.rate = 0.7;
+                utterance.pitch = 1.1;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Speak only Bosnian
+        function speakBosnian(text) {
+            if (!soundEnabled) return;
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'bs-BA';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Add audio narration to all interactive elements
+        function addAudioNarration() {
+            // Add to all cards and buttons
+            document.querySelectorAll('.world-card:not(.locked)').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    const worldName = card.querySelector('.world-name');
+                    if (worldName) {
+                        const bsText = worldName.dataset.bs || worldName.textContent;
+                        const arText = worldName.dataset.ar || '';
+                        speakBosnian(bsText);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    const gameName = card.querySelector('.game-name');
+                    const gameDesc = card.querySelector('.game-desc');
+                    if (gameName && gameDesc) {
+                        const bsText = gameName.dataset.bs + '. ' + gameDesc.dataset.bs;
+                        speakBosnian(bsText);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.achievement-badge:not(.locked)').forEach(badge => {
+                badge.addEventListener('mouseenter', () => {
+                    const name = badge.querySelector('.achievement-name');
+                    if (name) {
+                        speakBosnian(name.textContent);
+                    }
+                });
+            });
+        }
+
+        // Override the existing speakText function
+        window.speakText = function(text) {
+            speakArabic(text);
+        };
+
+        // Add audio button to lesson cards
+        function addAudioButtonToLessons() {
+            // This will be called when lessons are rendered
+        }
+
+        // Enhanced lesson card with full audio narration
+        function showLessonCardWithAudio(index) {
+            const item = lessonItems[index];
+            const progress = ((index + 1) / lessonItems.length) * 100;
+            document.getElementById('lessonProgressBar').style.width = progress + '%';
+
+            let content = '';
+            if (currentLessonType === 'letters') {
+                const letterData = letterAudio.find(l => l.char === item.char) || { bs: item.name, ar: item.nameAr };
+                const exampleText = currentLang === 'bs' 
+                    ? `${item.example} (${item.exampleBs}) ${item.emoji}`
+                    : `${item.exampleAr} ${item.emoji}`;
+                const letterName = currentLang === 'bs' ? item.name : item.nameAr;
+
+                content = `
+                    <div class="lesson-card">
+                        <span class="lesson-emoji">${item.emoji}</span>
+                        <div class="lesson-arabic">${item.char}</div>
+                        <div class="lesson-transliteration">${letterName}</div>
+                        <div class="lesson-bosnian">${exampleText}</div>
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
+                            <button class="btn-speak" onclick="speakWithTranslation('${item.char}', '${letterData.bs.replace(/'/g, "\'")}')" title="Slušaj arapski i bosanski">🔊</button>
+                            <button class="btn-speak" style="background: var(--secondary);" onclick="speakBosnian('${letterData.bs.replace(/'/g, "\'")}')" title="Slušaj samo bosanski">🇧🇦</button>
+                            <button class="btn-speak" style="background: var(--purple);" onclick="speakArabic('${item.char}')" title="Slušaj samo arapski">🇸🇦</button>
+                        </div>
+                        <div style="background: rgba(78,205,196,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 16px; color: var(--text);">
+                            <strong>🇧🇦 Bosanski:</strong> ${letterData.bs}<br>
+                            <strong>🇸🇦 Arapski:</strong> ${letterData.ar}
+                        </div>
+                        <div class="lesson-nav">
+                            ${index > 0 ? `<button class="btn-game btn-secondary" onclick="showLessonCardWithAudio(${index - 1})">${currentLang === 'bs' ? '⬅️ Prethodno' : '⬅️ السابق'}</button>` : '<div></div>'}
+                            ${index < lessonItems.length - 1 
+                                ? `<button class="btn-game btn-primary" onclick="showLessonCardWithAudio(${index + 1})">${currentLang === 'bs' ? 'Dalje ➡️' : 'التالي ➡️'}</button>`
+                                : `<button class="btn-game btn-primary" onclick="finishLesson()">✓ ${currentLang === 'bs' ? 'Završi' : 'إنهاء'}</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            } else {
+                const wordData = wordAudio.find(w => w.arabic === item.arabic) || { bs: item.translationBs, ar: item.translationAr };
+                const translation = currentLang === 'bs' ? item.translationBs : item.translationAr;
+
+                content = `
+                    <div class="lesson-card">
+                        <span class="lesson-emoji">${item.emoji}</span>
+                        <div class="lesson-arabic">${item.arabic}</div>
+                        <div class="lesson-transliteration">${item.transliteration}</div>
+                        <div class="lesson-bosnian">${translation}</div>
+                        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
+                            <button class="btn-speak" onclick="speakWithTranslation('${item.arabic}', '${wordData.bs.replace(/'/g, "\'")}')" title="Slušaj arapski i bosanski">🔊</button>
+                            <button class="btn-speak" style="background: var(--secondary);" onclick="speakBosnian('${wordData.bs.replace(/'/g, "\'")}')" title="Slušaj samo bosanski">🇧🇦</button>
+                            <button class="btn-speak" style="background: var(--purple);" onclick="speakArabic('${item.arabic}')" title="Slušaj samo arapski">🇸🇦</button>
+                        </div>
+                        <div style="background: rgba(78,205,196,0.1); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 16px; color: var(--text);">
+                            <strong>🇧🇦 Bosanski:</strong> ${wordData.bs}<br>
+                            <strong>🇸🇦 Arapski:</strong> ${wordData.ar}
+                        </div>
+                        <div class="lesson-nav">
+                            ${index > 0 ? `<button class="btn-game btn-secondary" onclick="showLessonCardWithAudio(${index - 1})">${currentLang === 'bs' ? '⬅️ Prethodno' : '⬅️ السابق'}</button>` : '<div></div>'}
+                            ${index < lessonItems.length - 1 
+                                ? `<button class="btn-game btn-primary" onclick="showLessonCardWithAudio(${index + 1})">${currentLang === 'bs' ? 'Dalje ➡️' : 'التالي ➡️'}</button>`
+                                : `<button class="btn-game btn-primary" onclick="finishLesson()">✓ ${currentLang === 'bs' ? 'Završi' : 'إنهاء'}</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('lessonContent').innerHTML = content;
+
+            // Auto-play audio for the current item
+            setTimeout(() => {
+                if (currentLessonType === 'letters') {
+                    const letterData = letterAudio.find(l => l.char === item.char);
+                    if (letterData) {
+                        speakWithTranslation(item.char, letterData.bs);
+                    }
+                } else {
+                    const wordData = wordAudio.find(w => w.arabic === item.arabic);
+                    if (wordData) {
+                        speakWithTranslation(item.arabic, wordData.bs);
+                    }
+                }
+            }, 500);
+        }
+
+        // Override showLessonCard to use the audio version
+        window.showLessonCard = showLessonCardWithAudio;
+
+        // Add audio narration to tracing game
+        function updateTracingDisplayWithAudio() {
+            const letter = letters[currentTracingIndex];
+            document.getElementById('tracingLetter').textContent = letter.char;
+            document.getElementById('tracingLetterName').textContent = currentLang === 'bs' ? letter.name : letter.nameAr;
+            const exampleText = currentLang === 'bs' 
+                ? `${letter.example} (${letter.exampleBs}) ${letter.emoji}`
+                : `${letter.exampleAr} ${letter.emoji}`;
+            document.getElementById('tracingExample').textContent = exampleText;
+            document.getElementById('tracingGuide').textContent = letter.char;
+            document.getElementById('tracingScore').textContent = gameScores.tracing + ' ⭐';
+
+            // Auto-play audio
+            const letterData = letterAudio.find(l => l.char === letter.char);
+            if (letterData) {
+                setTimeout(() => {
+                    speakWithTranslation(letter.char, letterData.bs);
+                }, 300);
+            }
+        }
+
+        window.updateTracingDisplay = updateTracingDisplayWithAudio;
+
+        // Add audio to quiz
+        function showQuizQuestionWithAudio() {
+            const question = letters[currentQuizIndex];
+            const wrongOptions = letters.filter((_, i) => i !== currentQuizIndex)
+                .sort(() => Math.random() - 0.5).slice(0, 3);
+            const options = [question, ...wrongOptions].sort(() => Math.random() - 0.5);
+
+            const questionText = currentLang === 'bs' ? 'Kako se zove ovo slovo?' : 'ما اسم هذا الحرف؟';
+
+            document.getElementById('quizScore').textContent = gameScores.quiz + ' ⭐';
+
+            document.getElementById('quizContainer').innerHTML = `
+                <div class="quiz-question">
+                    <div class="quiz-question-text">${questionText}</div>
+                    <div class="quiz-question-image">${question.char}</div>
+                    <button class="btn-speak" style="width: 50px; height: 50px; font-size: 20px;" onclick="speakWithTranslation('${question.char}', '${letterAudio.find(l => l.char === question.char)?.bs.replace(/'/g, "\'") || question.name}')">🔊</button>
+                </div>
+                <div class="quiz-options">
+                    ${options.map(opt => `
+                        <button class="quiz-option" onclick="checkQuizAnswer(this, '${currentLang === 'bs' ? opt.name : opt.nameAr}', '${currentLang === 'bs' ? question.name : question.nameAr}')">
+                            ${currentLang === 'bs' ? opt.name : opt.nameAr}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            // Auto-play question
+            setTimeout(() => {
+                const letterData = letterAudio.find(l => l.char === question.char);
+                if (letterData) {
+                    speakBosnian(questionText + ' ' + letterData.bs);
+                }
+            }, 500);
+        }
+
+        window.showQuizQuestion = showQuizQuestionWithAudio;
+
+        // Add audio to puzzle
+        function showPuzzleWithAudio() {
+            const word = words[currentPuzzleIndex];
+            const shuffled = word.arabic.split('').sort(() => Math.random() - 0.5);
+            puzzleAnswer = [];
+
+            const translation = currentLang === 'bs' ? word.translationBs : word.translationAr;
+            const wordData = wordAudio.find(w => w.arabic === word.arabic);
+
+            document.getElementById('puzzleScore').textContent = gameScores.puzzle + ' ⭐';
+
+            document.getElementById('puzzleContainer').innerHTML = `
+                <div class="puzzle-image">${word.emoji}</div>
+                <div style="font-size: 18px; margin-bottom: 20px; color: var(--text-light);">${translation}</div>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn-speak" style="width: 50px; height: 50px; font-size: 20px;" onclick="speakWithTranslation('${word.arabic}', '${wordData?.bs.replace(/'/g, "\'") || translation}')">🔊</button>
+                </div>
+                <div class="puzzle-word" id="puzzleSlots">
+                    ${word.arabic.split('').map(() => `
+                        <div class="puzzle-slot"></div>
+                    `).join('')}
+                </div>
+                <div class="puzzle-letters" id="puzzleLetters">
+                    ${shuffled.map((letter, i) => `
+                        <button class="puzzle-letter" data-letter="${letter}" data-index="${i}" onclick="placeLetter(this)">${letter}</button>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn-game btn-secondary" onclick="resetPuzzle()">🔄 ${currentLang === 'bs' ? 'Ponovo' : 'إعادة'}</button>
+                </div>
+            `;
+
+            // Auto-play
+            setTimeout(() => {
+                if (wordData) {
+                    speakBosnian('Sastavi riječ: ' + wordData.bs);
+                }
+            }, 500);
+        }
+
+        window.showPuzzle = showPuzzleWithAudio;
+
+        // Add audio to matching game cards
+        function initMatchingGameWithAudio() {
+            matchedPairs = 0;
+            flippedCards = [];
+            gameScores.matching = 0;
+            document.getElementById('matchingScore').textContent = '0 ⭐';
+
+            const grid = document.getElementById('matchingGrid');
+            grid.innerHTML = '';
+
+            const selectedLetters = letters.slice(0, 6);
+            const cards = [];
+
+            selectedLetters.forEach((l, i) => {
+                cards.push({ type: 'letter', content: l.char, id: i, audio: l.char });
+                cards.push({ type: 'emoji', content: l.emoji, id: i, audio: l.exampleBs });
+            });
+
+            cards.sort(() => Math.random() - 0.5);
+
+            cards.forEach((card, idx) => {
+                const div = document.createElement('div');
+                div.className = 'match-card';
+                div.dataset.id = card.id;
+                div.dataset.type = card.type;
+                div.dataset.audio = card.audio;
+                div.innerHTML = `
+                    <span class="card-back">❓</span>
+                    <span class="card-front">${card.content}</span>
+                `;
+                div.onclick = () => flipCard(div);
+                div.addEventListener('mouseenter', () => {
+                    if (!div.classList.contains('flipped') && !div.classList.contains('matched')) {
+                        const letterData = letterAudio.find(l => l.char === card.audio);
+                        if (letterData) {
+                            speakBosnian(letterData.bs);
+                        } else {
+                            speakBosnian(card.audio);
+                        }
+                    }
+                });
+                grid.appendChild(div);
+            });
+
+            // Instructions audio
+            setTimeout(() => {
+                speakBosnian('Upari karte. Pronađi slovo i odgovarajuću sliku.');
+            }, 500);
+        }
+
+        window.initMatchingGame = initMatchingGameWithAudio;
+
+        // Initialize audio narration after app starts
+        const originalStartApp = window.startApp;
+        window.startApp = function() {
+            originalStartApp();
+            setTimeout(() => {
+                addAudioNarration();
+                speakBosnian('Dobrodošao u Mali Arabi. Izaberi svijet učenja ili igru.');
+            }, 1000);
+        };
+
+        // Add audio to reward screen
+        const originalShowReward = window.showReward;
+        window.showReward = function(title, text, points) {
+            document.getElementById('rewardTitle').textContent = title;
+            document.getElementById('rewardText').textContent = text;
+            document.getElementById('rewardPoints').textContent = points;
+            document.getElementById('rewardScreen').classList.add('active');
+
+            // Play reward audio
+            setTimeout(() => {
+                speakBosnian(title + '. ' + text + '. ' + points);
+            }, 300);
+        };
+
+        // Add audio to daily challenge
+        const originalOpenDailyChallenge = window.openDailyChallenge;
+        window.openDailyChallenge = function() {
+            startLesson('letters', 0);
+            setTimeout(() => {
+                speakBosnian('Današnji izazov. Nauči pet nova arapska slova.');
+            }, 500);
+        };
+
+</script>
 </body>
 </html>
