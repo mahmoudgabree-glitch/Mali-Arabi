@@ -2330,7 +2330,12 @@
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = lang;
 
+            // Save language preference
+            localStorage.setItem('maliArabiLang', lang);
+
             // Transition to onboarding after language selection
+            // Reset splashTransitioned to allow transition even if auto-timer already fired
+            splashTransitioned = false;
             setTimeout(() => {
                 transitionFromSplash();
             }, 300);
@@ -2421,12 +2426,20 @@
             }, 800);
         }
 
-        // Auto transition after 2.5 seconds
-        setTimeout(transitionFromSplash, 2500);
+        // Allow tap to skip splash (but not when clicking language buttons)
+        document.getElementById('splash').addEventListener('click', function(e) {
+            // Don't trigger if clicking on language buttons
+            if (e.target.closest('.lang-selector') || e.target.closest('.lang-btn')) {
+                return;
+            }
+            transitionFromSplash();
+        });
 
-        // Allow tap to skip splash
-        document.getElementById('splash').addEventListener('click', transitionFromSplash);
         document.getElementById('splash').addEventListener('touchend', function(e) {
+            // Don't trigger if tapping on language buttons
+            if (e.target.closest('.lang-selector') || e.target.closest('.lang-btn')) {
+                return;
+            }
             e.preventDefault();
             transitionFromSplash();
         });
